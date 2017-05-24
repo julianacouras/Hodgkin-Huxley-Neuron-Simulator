@@ -22,7 +22,7 @@ function varargout = HH_Simulator(varargin)
 
 % Edit the above text to modify the response to help HH_Simulator
 
-% Last Modified by GUIDE v2.5 04-May-2017 22:48:19
+% Last Modified by GUIDE v2.5 24-May-2017 01:01:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -81,6 +81,7 @@ function clamp_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of clamp
 
+handles.start.Value=0;
 handles.pulso.Value=0;
 handles.alternada.Value=0;
 
@@ -102,21 +103,29 @@ Vc(it(t_Si):it(t_Sf))= Ve + dV;
 
 [n m h JL JK JNa gKv gNav]=euler_nmh_clamp(t,Vc);
 
+
 for j=i:length(t)
+    try
     if handles.pulso.Value ==1
         break
     elseif handles.alternada.Value ==1
         break
+    elseif handles.start.Value ==1
+        break
     end
-    plot(handles.axes1,t(1:j),Vc(1:j),'b')
-%     set(handles.axes1, 'XLim', [0,20])
-    
-    plot(handles.axes2,t(1:j),JL(1:j),'b', t(1:j), JK(1:j), 'r',t(1:j), JNa(1:j),'g')
-%     set(handles.axes2, 'XLim', [0, 20])
-   
-    plot(handles.axes3,t(1:j),gKv(1:j), 'r',t(1:j),gNav(1:j),'g')
-%     set(handles.axes3, 'XLim', [0,20])
+    aa=plot(handles.axes1,t(1:j),Vc(1:j),'b');
+    bb=plot(handles.axes2,t(1:j),JL(1:j),'b', t(1:j), JK(1:j), 'r',t(1:j), JNa(1:j),'g');
+    cc=plot(handles.axes3,t(1:j),gKv(1:j), 'r',t(1:j),gNav(1:j),'g');
     drawnow
+    %guardar plot
+    [xIL, xIK, xINA]=bb.XData;
+    [xGK, xGNA]=cc.XData;
+    [yIL, yIK, yINA]=bb.YData;
+    [yGK, yGNA]=cc.YData;
+    handles.save.UserData=[aa.XData;aa.YData;xIL;yIL;xIK;yIK;xINA;yINA;xGK;yGK;xGNA;yGNA];
+    catch
+        break
+    end
 end
 
 % --- Executes on slider movement.
@@ -172,6 +181,10 @@ function start_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of start
 
+handles.pulso.Value=0;
+handles.alternada.Value=0;
+handles.clamp.Value=0;
+
 handles.pulso.UserData = zeros(2,50);
 handles.Ie_p.UserData = 0;
 
@@ -184,6 +197,7 @@ Vi = ones(1,length(t)).*Ve;
 zz = zeros(1,length(t));
 
 for i= 1:length(t)
+    try
     handles.clamp.UserData = i;
     handles.pulso_1.UserData = i;
     handles.alternada.UserData = i;
@@ -194,16 +208,15 @@ for i= 1:length(t)
     elseif handles.alternada.Value ==1
         break
     end
+
     plot(handles.axes1,t(1:i),Vi(1:i),'b')
-%     set(handles.axes1, 'XLim', [0,20])
-    
     plot(handles.axes2,t(1:i),zz(1:i),'b')
-%     set(handles.axes2, 'XLim', [0, 20])
-    
     plot(handles.axes3,t(1:i),zz(1:i),'b')
-%     set(handles.axes3, 'XLim', [0,20])
-    
+
     pause(dt)
+    catch
+        break
+    end
 end
 
 
@@ -215,7 +228,7 @@ function pulso_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of pulso
 
-
+handles.start.Value=0;
 handles.clamp.Value=0;
 handles.alternada.Value=0;
 
@@ -246,19 +259,28 @@ end
 
 [n m h JL JK JNa gKv gNav V]=euler_nmh_pulse(t,JE);
 for j=i:length(t)
+    try
     if handles.clamp.Value==1
         break
     elseif handles.alternada.Value ==1
-            break
+        break
+    elseif handles.start.Value==1
+        break
     end
     handles.pulso_1.UserData=j;
-    plot(handles.axes1,t(1:j),V(1:j))
-%     set(handles.axes1, 'XLim', [0,20])
-    plot(handles.axes2,t(1:j),JL(1:j), 'b', t(1:j), JK(1:j), 'r', t(1:j), JNa(1:j), 'g')
-%     set(handles.axes2, 'XLim', [0,20])
-    plot(handles.axes3,t(1:j),gKv(1:j), 'r',t(1:j),gNav(1:j),'g')
-%     set(handles.axes3, 'XLim', [0,20])
+    aa=plot(handles.axes1,t(1:j),V(1:j));
+    bb=plot(handles.axes2,t(1:j),JL(1:j), 'b', t(1:j), JK(1:j), 'r', t(1:j), JNa(1:j), 'g');
+    cc=plot(handles.axes3,t(1:j),gKv(1:j), 'r',t(1:j),gNav(1:j),'g');
     drawnow
+        %guardar plot
+    [xIL, xIK, xINA]=bb.XData;
+    [xGK, xGNA]=cc.XData;
+    [yIL, yIK, yINA]=bb.YData;
+    [yGK, yGNA]=cc.YData;
+    handles.save.UserData=[aa.XData;aa.YData;xIL;yIL;xIK;yIK;xINA;yINA;xGK;yGK;xGNA;yGNA];
+    catch
+        break
+    end
 end
 
 
@@ -316,6 +338,7 @@ function alternada_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of alternada
 
+handles.start.Value=0;
 handles.clamp.Value=0;
 handles.pulso.Value=0;
 
@@ -339,18 +362,28 @@ JE(it(t_Si):length(t))= Ie*sin(2*pi*f*t(it(t_Si):length(t)));
 [n m h JL JK JNa gKv gNav V]=euler_nmh_pulse(t,JE);
 
 for j=i:length(t)
+    try
     if handles.pulso.Value ==1
         break
     elseif handles.clamp.Value ==1
         break
+    elseif handles.start.Value==1
+        break;
     end
-    plot(handles.axes1,t(1:j),V(1:j))
-%     set(handles.axes1, 'XLim', [0,20])
-    plot(handles.axes2,t(1:j),JL(1:j), 'b', t(1:j), JK(1:j), 'r', t(1:j), JNa(1:j), 'g')
-%     set(handles.axes2, 'XLim', [0,20])
-    plot(handles.axes3,t(1:j),gKv(1:j), 'r',t(1:j),gNav(1:j),'g')
-%     set(handles.axes3, 'XLim', [0,20])
+    aa=plot(handles.axes1,t(1:j),V(1:j));
+    bb=plot(handles.axes2,t(1:j),JL(1:j), 'b', t(1:j), JK(1:j), 'r', t(1:j), JNa(1:j), 'g');
+    cc=plot(handles.axes3,t(1:j),gKv(1:j), 'r',t(1:j),gNav(1:j),'g');
     drawnow
+    
+    %guardar plot
+    [xIL, xIK, xINA]=bb.XData;
+    [xGK, xGNA]=cc.XData;
+    [yIL, yIK, yINA]=bb.YData;
+    [yGK, yGNA]=cc.YData;
+    handles.save.UserData=[aa.XData;aa.YData;xIL;yIL;xIK;yIK;xINA;yINA;xGK;yGK;xGNA;yGNA];
+    catch
+        break
+    end
 end
 
 
@@ -520,12 +553,36 @@ legend('tau_n')
 
 handles.tau.Value=0;
 
-% --- Executes on button press in togglebutton8.
-function togglebutton8_Callback(hObject, eventdata, handles)
-% hObject    handle to togglebutton8 (see GCBO)
+
+% --- Executes on button press in save.
+function save_Callback(hObject, eventdata, handles)
+% hObject    handle to save (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of togglebutton8
+% h = gcf;
+% set(h,'PaperSize',[15 10]);
+% print(h,'-dpdf','-fillpage','-noui')
+guardar=handles.save.UserData;
+% [xIL xIK xINA]=guardar(3,:)
+% [xGK xGNA]=guardar(5,:)
+% [yIL yIK yINA]=guardar(4,:)
+% [yGK yGNA]=guardar(6,:)
 
-delete(handles.gui)
+h=figure('units','normalized','position',[0 0 1 1]);
+
+subplot(3,1,1)
+plot(guardar(1,:),guardar(2,:))
+xlabel('Tempo (ms)')
+ylabel('Voltagem membranar (mV)')
+subplot(3,1,2)
+plot(guardar(3,:), guardar(4,:),'b', guardar(5,:), guardar(6,:),'r',guardar(7,:),guardar(8,:),'g')
+xlabel('Tempo (ms)')
+ylabel('Correntes(uA)')
+legend('Leak','K+','Na+')
+subplot(3,1,3)
+plot(guardar(9,:),guardar(10,:),'r',guardar(11,:),guardar(12,:),'g')
+xlabel('Tempo (ms)')
+ylabel('Condutâncias(mS)')
+legend('K','Na+')
+print(h,'-djpeg')
